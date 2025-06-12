@@ -1,0 +1,354 @@
+# 16x16 五子棋游戏 - 原野风格
+
+以下是一个完整的16x16五子棋游戏HTML文件，采用原野风格设计：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>原野风五子棋</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #e8f5e9;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23e8f5e9"/><path d="M0,50 Q25,25 50,50 T100,50" fill="none" stroke="%23a5d6a7" stroke-width="1"/></svg>');
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #2e7d32;
+        }
+
+        h1 {
+            color: #1b5e20;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .game-container {
+            background-color: #d7ccc8;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" fill="%23d7ccc8"/><path d="M0,0 L20,20 M20,0 L0,20" stroke="%23a1887f" stroke-width="0.5"/></svg>');
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border: 8px solid #8d6e63;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><circle cx="10" cy="10" r="1" fill="%238d6e63" opacity="0.3"/><circle cx="30" cy="20" r="1" fill="%238d6e63" opacity="0.3"/><circle cx="70" cy="15" r="1" fill="%238d6e63" opacity="0.3"/><circle cx="90" cy="30" r="1" fill="%238d6e63" opacity="0.3"/><circle cx="15" cy="70" r="1" fill="%238d6e63" opacity="0.3"/><circle cx="40" cy="90" r="1" fill="%238d6e63" opacity="0.3"/><circle cx="80" cy="80" r="1" fill="%238d6e63" opacity="0.3"/><circle cx="60" cy="60" r="1" fill="%238d6e63" opacity="0.3"/></svg>');
+            pointer-events: none;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(16, 30px);
+            grid-template-rows: repeat(16, 30px);
+            background-color: #d7ccc8;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><rect width="30" height="30" fill="%23d7ccc8"/><path d="M15,0 V30 M0,15 H30" stroke="%235d4037" stroke-width="0.5"/></svg>');
+            border: 2px solid #5d4037;
+        }
+
+        .cell {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cell:hover::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .stone {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            position: relative;
+            z-index: 1;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .black {
+            background: radial-gradient(circle at 30% 30%, #616161, #212121);
+        }
+
+        .white {
+            background: radial-gradient(circle at 30% 30%, #f5f5f5, #bdbdbd);
+        }
+
+        .stone::after {
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .white::after {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            background-color: #8d6e63;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #6d4c41;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .status {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1b5e20;
+            padding: 10px 20px;
+            background-color: #c8e6c9;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .wood-frame {
+            position: absolute;
+            border: 15px solid transparent;
+            border-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><rect width="30" height="30" fill="%235d4037"/><path d="M0,0 L30,30 M30,0 L0,30" stroke="%233e2723" stroke-width="1"/></svg>') 15 round;
+            pointer-events: none;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <h1>原野风五子棋</h1>
+    <div class="game-container">
+        <div class="wood-frame"></div>
+        <div id="board"></div>
+    </div>
+    <div class="status" id="status">黑方回合</div>
+    <div class="controls">
+        <button id="restart">重新开始</button>
+        <button id="undo">悔棋</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('board');
+            const statusDisplay = document.getElementById('status');
+            const restartButton = document.getElementById('restart');
+            const undoButton = document.getElementById('undo');
+            
+            let gameState = Array(16).fill().map(() => Array(16).fill(null));
+            let currentPlayer = 'black';
+            let gameHistory = [];
+            let gameActive = true;
+            
+            // 创建棋盘
+            function createBoard() {
+                board.innerHTML = '';
+                for (let i = 0; i < 16; i++) {
+                    for (let j = 0; j < 16; j++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('cell');
+                        cell.dataset.row = i;
+                        cell.dataset.col = j;
+                        cell.addEventListener('click', handleCellClick);
+                        board.appendChild(cell);
+                    }
+                }
+            }
+            
+            // 处理点击事件
+            function handleCellClick(e) {
+                if (!gameActive) return;
+                
+                const row = parseInt(e.target.dataset.row);
+                const col = parseInt(e.target.dataset.col);
+                
+                if (gameState[row][col] !== null) return;
+                
+                // 保存当前状态到历史记录
+                gameHistory.push({
+                    state: JSON.parse(JSON.stringify(gameState)),
+                    player: currentPlayer
+                });
+                
+                // 更新游戏状态
+                gameState[row][col] = currentPlayer;
+                updateBoard();
+                
+                // 检查胜利条件
+                if (checkWin(row, col)) {
+                    statusDisplay.textContent = `${currentPlayer === 'black' ? '黑方' : '白方'}获胜!`;
+                    gameActive = false;
+                    return;
+                }
+                
+                // 检查平局
+                if (isBoardFull()) {
+                    statusDisplay.textContent = '平局!';
+                    gameActive = false;
+                    return;
+                }
+                
+                // 切换玩家
+                currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+                statusDisplay.textContent = `${currentPlayer === 'black' ? '黑方' : '白方'}回合`;
+            }
+            
+            // 更新棋盘显示
+            function updateBoard() {
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach(cell => {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    cell.innerHTML = '';
+                    
+                    if (gameState[row][col]) {
+                        const stone = document.createElement('div');
+                        stone.classList.add('stone', gameState[row][col]);
+                        cell.appendChild(stone);
+                    }
+                });
+            }
+            
+            // 检查胜利条件
+            function checkWin(row, col) {
+                const directions = [
+                    [0, 1],   // 水平
+                    [1, 0],   // 垂直
+                    [1, 1],   // 对角线
+                    [1, -1]   // 反对角线
+                ];
+                
+                for (const [dx, dy] of directions) {
+                    let count = 1;
+                    
+                    // 正向检查
+                    for (let i = 1; i < 5; i++) {
+                        const newRow = row + i * dx;
+                        const newCol = col + i * dy;
+                        
+                        if (newRow < 0 || newRow >= 16 || newCol < 0 || newCol >= 16 || 
+                            gameState[newRow][newCol] !== currentPlayer) {
+                            break;
+                        }
+                        count++;
+                    }
+                    
+                    // 反向检查
+                    for (let i = 1; i < 5; i++) {
+                        const newRow = row - i * dx;
+                        const newCol = col - i * dy;
+                        
+                        if (newRow < 0 || newRow >= 16 || newCol < 0 || newCol >= 16 || 
+                            gameState[newRow][newCol] !== currentPlayer) {
+                            break;
+                        }
+                        count++;
+                    }
+                    
+                    if (count >= 5) return true;
+                }
+                
+                return false;
+            }
+            
+            // 检查棋盘是否已满
+            function isBoardFull() {
+                return gameState.every(row => row.every(cell => cell !== null));
+            }
+            
+            // 重新开始游戏
+            function restartGame() {
+                gameState = Array(16).fill().map(() => Array(16).fill(null));
+                currentPlayer = 'black';
+                gameHistory = [];
+                gameActive = true;
+                statusDisplay.textContent = '黑方回合';
+                updateBoard();
+            }
+            
+            // 悔棋
+            function undoMove() {
+                if (gameHistory.length === 0 || !gameActive) return;
+                
+                const lastMove = gameHistory.pop();
+                gameState = lastMove.state;
+                currentPlayer = lastMove.player;
+                statusDisplay.textContent = `${currentPlayer === 'black' ? '黑方' : '白方'}回合`;
+                updateBoard();
+            }
+            
+            // 事件监听
+            restartButton.addEventListener('click', restartGame);
+            undoButton.addEventListener('click', undoMove);
+            
+            // 初始化游戏
+            createBoard();
+        });
+    </script>
+</body>
+</html>
+```
+
+## 游戏特点
+
+1. **原野风格设计**：
+   - 使用大地色系（棕色、绿色）作为主色调
+   - 木质纹理的棋盘边框
+   - 自然风格的背景和装饰元素
+
+2. **游戏功能**：
+   - 16x16的标准五子棋棋盘
+   - 黑白双方轮流落子
+   - 自动判断胜负（五子连珠）
+   - 平局判断
+   - 悔棋功能
+   - 重新开始功能
+
+3. **视觉效果**：
+   - 棋子有立体感和光泽效果
+   - 悬停时有落子提示
+   - 木质纹理的边框
+   - 自然风格的背景
+
+使用方法：将上述代码保存为HTML文件，然后在浏览器中打开即可开始游戏。黑方先行，点击棋盘格子落子，五子连珠即可获胜。
